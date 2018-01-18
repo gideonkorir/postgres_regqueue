@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Outbound dialler</title>
+    </head>
+    <body>
+        <div>
+            <div id="ext-input-area">
+                <span>Extension: </span><input type="number" id="ext-input" name="ext-input" />
+                <br />
+                <button type="button" id="confirm">Confirm</button>
+            </div>
+            <div id="ext-display-area" style="display: none">
+                
+            </div>
+            <input type="hidden" id="ext" name="ext" />
+        </div>
+        <div>
+            <p></p>
+            <button id="btn-next">Dial Me</button>
+        </div>
+        <div>
+            <ul id="dialed">
+
+            </ul>
+        </div>
+        <div id="scripts">
+            <script src="static/jquery3.2.1.min.js" type="text/javascript"></script>
+            <script type="text/javascript">
+                $(function(){
+                    $("#btn-next").click(function(e){
+                        ext = $("#ext").val();
+                        $url = "/call/" + ext;
+                        $dialed = $('#dialed');
+                        $.post($url, function(data, status, xhr){
+                            if(data.called == 'true'){
+                                $li = $('<li>').html("Called: " + data.phoneNumber);
+                                $dialed.append($li);
+                            }
+                            else{
+                                $li = $('<li>').html("Outbound queue is empty");
+                                $dialed.append($li);
+                            }
+                        });
+                    });
+                });
+                $(function(){
+                    $("#confirm").click(function(e){
+                        $val = $("#ext-input").val()
+                        if(parseInt($val)){
+                            $html = "<span> Using extension: " + $val + ". Refresh page to change</span>";
+                            $("#ext").val($val)
+                            $("#ext-input-area").html($html);
+                        }
+                    })
+                });
+            </script>
+        </div>
+    </body>
+</html>

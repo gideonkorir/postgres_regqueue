@@ -21,6 +21,34 @@ class Registration(object):
     def __str__(self):
         return "{}, {}".format(self.reg_id, self.phone_number)
 
+class CancellationToken:
+    _cts = None
+
+    def __init__(self, cts):
+        self._cts = cts
+    
+    @property
+    def is_cancelled(self):
+        return self._cts.is_cancelled
+
+class CancellationTokenSource(object):
+    _cancelled = False
+
+    def __init__(self):
+        pass
+
+    @property
+    def is_cancelled(self):
+        return self._cancelled
+
+    @property
+    def token(self):
+        return CancellationToken(self)
+
+    def cancel(self):
+        self._cancelled = True
+
+
 
 class RegistrationSource(object):
     """Represents a class that can fetch registrations
@@ -32,12 +60,12 @@ class RegistrationSource(object):
     def __init__(self):
         pass
 
-    def get_pending_registrations(self):
+    def get_next_registration(self):
         """Abstract method to define contract for getting pending registrations
         """
         pass
 
-    def mark_as_processed(self, registrations):
+    def mark_as_processed(self, registration):
         """Abstract method to define contract for removing actioned registrations
         """
         pass

@@ -11,22 +11,31 @@ class PostgresRegistrationSource(RegistrationSource):
         self._conn = psycopg2.connect(connectionstring)
 
 
-    def get_pending_registrations(self):
+    def get_next_registrations(self):
         cursor = self._conn.cursor()
-        cursor.execute("SELECT id, phonenumber FROM public.registrations WHERE processed = false ORDER BY id ASC LIMIT 100")
-        rows = cursor.fetchall()
-        for row in rows:
-            yield Registration(row[0], row[1])
+        cursor.execute("""
+            UPDATE public.call_queue_creator SET lockedto = now()
+            WHERE id in(
+                SELECT id FROM public.call_queue_creator
+                WHERE beencalled = false AND (lockedto IS NULL OR lockedto <= now())
+                ORDER BY id ASC
+                FOR UPDATE SKIP LOCKED
+                LIMIT 1
+            )
+            RETURNING id,phonenumber
+        """)
+        row = cursor.fetch()
+        if row is None:
+            return None
+        else:
+            return Registration(row[0], row[1])
 
 
-    def mark_as_processed(self, registrations):
-        if(registrations is None):
+    def mark_as_processed(self, registration):
+        if(registration is None):
             return
+        sql = "UPDATE public.call_queue_creator SET beencalled = true WHERE Id= {}".format(registration.reg_id)
         cursor = self._conn.cursor()
-        in_args = _collect_ids(registrations)
-        if(in_args is None):
-            return #empty collection
-        sql = "UPDATE public.registrations SET Processed = true WHERE Id IN ({})".format(in_args)
         cursor.execute(sql)
         self._conn.commit()
 
