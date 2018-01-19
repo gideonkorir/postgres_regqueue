@@ -39,10 +39,15 @@
                         $dialed = $('#dialed');
                         $.post($url, function(data, status, xhr){
                             $text = 'SMS queue is currently empty, please try again later';
-                            if(data.called == 'true'){
+                            $called = data.called == 'true';
+                            if($called){
                                 $text = `Initiated call to ${data.phoneNumber}`;
                             }
                             $dialed.append(`<li class='list-group-item'>${$text}</li>`);
+                            if($called && (data.goto != '' || data.goto != null)){
+                                //open link in new window
+                                window.open(data.goto, '_blank')
+                            }
                         });
                     });
                 });
