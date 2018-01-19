@@ -11,10 +11,10 @@ class PostgresRegistrationSource(RegistrationSource):
         self._conn = psycopg2.connect(connectionstring)
 
 
-    def get_next_registrations(self):
+    def get_next_registration(self):
         cursor = self._conn.cursor()
         cursor.execute("""
-            UPDATE public.call_queue_creator SET lockedto = now()
+            UPDATE public.call_queue_creator SET lockedto = now() + interval '30 second'
             WHERE id in(
                 SELECT id FROM public.call_queue_creator
                 WHERE beencalled = false AND (lockedto IS NULL OR lockedto <= now())
@@ -22,13 +22,14 @@ class PostgresRegistrationSource(RegistrationSource):
                 FOR UPDATE SKIP LOCKED
                 LIMIT 1
             )
-            RETURNING id,phonenumber
+            RETURNING id,phonenumber,campaignid
         """)
-        row = cursor.fetch()
+        self._conn.commit()
+        row = cursor.fetchone()
         if row is None:
             return None
         else:
-            return Registration(row[0], row[1])
+            return Registration(row[0], row[1], row[2])
 
 
     def mark_as_processed(self, registration):

@@ -2,9 +2,10 @@ class Registration(object):
     """A registration object from sms we've received
     """
 
-    def __init__(self, reg_id, phoneNumber):
+    def __init__(self, reg_id, phoneNumber, campaignid):
         self._reg_id = reg_id
         self._phoneNumber = phoneNumber
+        self._campaignid = campaignid
 
     @property
     def reg_id(self):
@@ -18,8 +19,14 @@ class Registration(object):
         """
         return self._phoneNumber
 
+    @property
+    def campaign_id(self):
+        """The campaign we are running
+        """
+        return self._campaignid
+
     def __str__(self):
-        return "{}, {}".format(self.reg_id, self.phone_number)
+        return "{}, {} for campaign {}".format(self.reg_id, self.phone_number, self._campaignid)
 
 class CancellationToken:
     _cts = None

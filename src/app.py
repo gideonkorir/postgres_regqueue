@@ -1,9 +1,9 @@
-from flask import Flask, render_template, url_for, json, jsonify
+from flask import Flask, render_template, url_for, json, jsonify,Response
 from pabx_dialer.pgfetch import PostgresRegistrationSource
 from pabx_dialer.pabx import PabxTarget
 
 source = PostgresRegistrationSource("dbname='registrations' user='postgres' host='localhost' password='Dev-2010'")
-target = None # PabxTarget("http://192.168.88.36:8088", "test", "test", "+254709164000")
+target = PabxTarget("http://192.168.88.36:8088", "test", "test", "+254709164000")
 
 app = Flask(__name__)
 
@@ -17,9 +17,9 @@ def call(extension):
     if reg is not None:
         target.call(reg.phone_number, extension)
         source.mark_as_processed(reg)
-        return json.dumps({'called':'true', 'phoneNumber':reg.phone_number})
+        return Response(json.dumps({'called':'true', 'phoneNumber':reg.phone_number}), content_type="application/json")
     else:
-        return json.dumps({'called':'false'})
+        return Response(json.dumps({'called':'false'}), content_type="application/json")
 
 app.run(debug=True)
 
